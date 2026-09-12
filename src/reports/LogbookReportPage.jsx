@@ -162,8 +162,8 @@ const LogbookReportPage = () => {
         formatTime(row.endTime, 'minutes'),
         purposeLabel(purpose?.purpose),
         purpose?.note || '',
-        row.startAddress || `${row.startLat}, ${row.startLon}`,
-        row.endAddress || `${row.endLat}, ${row.endLon}`,
+        row.startGeofenceName || row.startAddress || `${row.startLat}, ${row.startLon}`,
+        row.endGeofenceName || row.endAddress || `${row.endLat}, ${row.endLon}`,
         formatDistance(row.distance, distanceUnit, t),
         formatDistance(row.startOdometer, distanceUnit, t),
         formatDistance(row.endOdometer, distanceUnit, t),
@@ -236,18 +236,22 @@ const LogbookReportPage = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <AddressValue
-                        latitude={item.startLat}
-                        longitude={item.startLon}
-                        originalAddress={item.startAddress}
-                      />
+                      {item.startGeofenceName || (
+                        <AddressValue
+                          latitude={item.startLat}
+                          longitude={item.startLon}
+                          originalAddress={item.startAddress}
+                        />
+                      )}
                     </TableCell>
                     <TableCell>
-                      <AddressValue
-                        latitude={item.endLat}
-                        longitude={item.endLon}
-                        originalAddress={item.endAddress}
-                      />
+                      {item.endGeofenceName || (
+                        <AddressValue
+                          latitude={item.endLat}
+                          longitude={item.endLon}
+                          originalAddress={item.endAddress}
+                        />
+                      )}
                     </TableCell>
                     <TableCell>{formatDistance(item.distance, distanceUnit, t)}</TableCell>
                     <TableCell>{formatDistance(item.startOdometer, distanceUnit, t)}</TableCell>
