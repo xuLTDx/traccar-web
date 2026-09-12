@@ -9,6 +9,7 @@ import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import RouteIcon from '@mui/icons-material/Route';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import EventRepeatIcon from '@mui/icons-material/EventRepeat';
 import NotesIcon from '@mui/icons-material/Notes';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
@@ -77,6 +78,12 @@ const ReportsMenu = () => {
           link={buildLink('/reports/stops')}
           icon={<PauseCircleFilledIcon />}
           selected={location.pathname === '/reports/stops'}
+        />
+        <MenuItem
+          title={t('reportLogbook')}
+          link={buildLink('/reports/logbook')}
+          icon={<MenuBookIcon />}
+          selected={location.pathname === '/reports/logbook'}
         />
         <MenuItem
           title={t('reportSummary')}
