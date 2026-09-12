@@ -91,6 +91,7 @@ const StopReportPage = () => {
       body: JSON.stringify({
         name: businessName,
         description: businessDescription,
+        address: businessItem.address,
         latitude: businessItem.latitude,
         longitude: businessItem.longitude,
       }),

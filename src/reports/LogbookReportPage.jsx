@@ -132,11 +132,16 @@ const LogbookReportPage = () => {
     }
   };
 
-  const rows = useMemo(() => items.map((item, index) => ({
-    ...item,
-    sequenceNumber: index + 1,
-    purposeItem: purposes[purposeKey(item)],
-  })), [items, purposes]);
+  const rows = useMemo(() => items
+    // A trip a company vehicle logbook doesn't make accounting sense for -
+    // Traccar's trip detection produces these from GPS jitter while
+    // stationary, distinct from a real (if short) trip.
+    .filter((item) => item.distance > 0)
+    .map((item, index) => ({
+      ...item,
+      sequenceNumber: index + 1,
+      purposeItem: purposes[purposeKey(item)],
+    })), [items, purposes]);
 
   const onExport = useCatch(async () => {
     const headers = [
@@ -162,8 +167,10 @@ const LogbookReportPage = () => {
         formatTime(row.endTime, 'minutes'),
         purposeLabel(purpose?.purpose),
         purpose?.note || '',
-        row.startGeofenceName || row.startAddress || `${row.startLat}, ${row.startLon}`,
-        row.endGeofenceName || row.endAddress || `${row.endLat}, ${row.endLon}`,
+        row.startBusinessAddress || row.startGeofenceName || row.startAddress
+          || `${row.startLat}, ${row.startLon}`,
+        row.endBusinessAddress || row.endGeofenceName || row.endAddress
+          || `${row.endLat}, ${row.endLon}`,
         formatDistance(row.distance, distanceUnit, t),
         formatDistance(row.startOdometer, distanceUnit, t),
         formatDistance(row.endOdometer, distanceUnit, t),
@@ -236,7 +243,7 @@ const LogbookReportPage = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {item.startGeofenceName || (
+                      {item.startBusinessAddress || item.startGeofenceName || (
                         <AddressValue
                           latitude={item.startLat}
                           longitude={item.startLon}
@@ -245,7 +252,7 @@ const LogbookReportPage = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {item.endGeofenceName || (
+                      {item.endBusinessAddress || item.endGeofenceName || (
                         <AddressValue
                           latitude={item.endLat}
                           longitude={item.endLon}
