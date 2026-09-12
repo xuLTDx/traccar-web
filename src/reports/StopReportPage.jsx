@@ -2,9 +2,23 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@mui/material/styles';
-import { IconButton, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import {
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  TextField,
+} from '@mui/material';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
+import BusinessIcon from '@mui/icons-material/Business';
 import {
   formatAddress,
   formatDistance,
@@ -66,6 +80,23 @@ const StopReportPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [businessItem, setBusinessItem] = useState(null);
+  const [businessName, setBusinessName] = useState('');
+  const [businessDescription, setBusinessDescription] = useState('');
+
+  const saveBusinessAddress = useCatch(async () => {
+    await fetchOrThrow('/api/businessaddresses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: businessName,
+        description: businessDescription,
+        latitude: businessItem.latitude,
+        longitude: businessItem.longitude,
+      }),
+    });
+    setBusinessItem(null);
+  });
 
   const onShow = useCatchCallback(async ({ deviceIds, groupIds, from, to }) => {
     const query = new URLSearchParams({ from, to });
@@ -201,6 +232,17 @@ const StopReportPage = () => {
                           <LocationSearchingIcon fontSize="small" />
                         </IconButton>
                       )}
+                      <IconButton
+                        size="small"
+                        title={t('reportMarkBusinessAddress')}
+                        onClick={() => {
+                          setBusinessItem(item);
+                          setBusinessName('');
+                          setBusinessDescription('');
+                        }}
+                      >
+                        <BusinessIcon fontSize="small" />
+                      </IconButton>
                     </TableCell>
                     <TableCell>{devices[item.deviceId].name}</TableCell>
                     {columns.map((key) => (
@@ -215,6 +257,34 @@ const StopReportPage = () => {
           </Table>
         </div>
       </div>
+      <Dialog open={!!businessItem} onClose={() => setBusinessItem(null)} fullWidth maxWidth="xs">
+        <DialogTitle>{t('reportMarkBusinessAddress')}</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            margin="normal"
+            label={t('sharedName')}
+            value={businessName}
+            onChange={(e) => setBusinessName(e.target.value)}
+            autoFocus
+          />
+          <TextField
+            fullWidth
+            margin="normal"
+            label={t('sharedDescription')}
+            value={businessDescription}
+            onChange={(e) => setBusinessDescription(e.target.value)}
+            multiline
+            minRows={2}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBusinessItem(null)}>{t('sharedCancel')}</Button>
+          <Button onClick={saveBusinessAddress} variant="contained" disabled={!businessName}>
+            {t('sharedSave')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </PageLayout>
   );
 };
