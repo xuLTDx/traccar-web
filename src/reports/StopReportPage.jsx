@@ -249,28 +249,30 @@ const StopReportPage = () => {
                 items.map((item) => (
                   <TableRow key={item.positionId}>
                     <TableCell className={classes.columnAction} padding="none">
-                      {selectedItem === item ? (
-                        <IconButton size="small" onClick={() => setSelectedItem(null)}>
-                          <GpsFixedIcon fontSize="small" />
-                        </IconButton>
-                      ) : (
-                        <IconButton size="small" onClick={() => setSelectedItem(item)}>
-                          <LocationSearchingIcon fontSize="small" />
-                        </IconButton>
-                      )}
-                      {!isNearExistingBusinessAddress(item.latitude, item.longitude) && (
-                        <IconButton
-                          size="small"
-                          title={t('reportMarkBusinessAddress')}
-                          onClick={() => {
-                            setBusinessItem(item);
-                            setBusinessName('');
-                            setBusinessDescription('');
-                          }}
-                        >
-                          <BusinessIcon fontSize="small" />
-                        </IconButton>
-                      )}
+                      <div className={classes.columnActionContainer}>
+                        {selectedItem === item ? (
+                          <IconButton size="small" onClick={() => setSelectedItem(null)}>
+                            <GpsFixedIcon fontSize="small" />
+                          </IconButton>
+                        ) : (
+                          <IconButton size="small" onClick={() => setSelectedItem(item)}>
+                            <LocationSearchingIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                        {!isNearExistingBusinessAddress(item.latitude, item.longitude) && (
+                          <IconButton
+                            size="small"
+                            title={t('reportMarkBusinessAddress')}
+                            onClick={() => {
+                              setBusinessItem(item);
+                              setBusinessName('');
+                              setBusinessDescription('');
+                            }}
+                          >
+                            <BusinessIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>{devices[item.deviceId].name}</TableCell>
                     {columns.map((key) => (

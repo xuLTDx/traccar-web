@@ -19,6 +19,7 @@ import {
   InputLabel,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import {
   formatDistance,
   formatTime,
@@ -101,6 +102,19 @@ const LogbookReportPage = () => {
     setEditPurpose(existing?.purpose || 'business');
     setEditNote(existing?.note ?? suggestedNote(item));
   };
+
+  const deletePurpose = useCatch(async (item) => {
+    const existing = purposes[purposeKey(item)];
+    if (!existing) {
+      return;
+    }
+    await fetchOrThrow(`/api/trippurposes/${existing.id}`, { method: 'DELETE' });
+    setPurposes((prev) => {
+      const next = { ...prev };
+      delete next[purposeKey(item)];
+      return next;
+    });
+  });
 
   const savePurpose = useCatch(async () => {
     const body = {
@@ -214,9 +228,16 @@ const LogbookReportPage = () => {
                 rows.map((item) => (
                   <TableRow key={`${item.startPositionId}-${item.endPositionId}`}>
                     <TableCell className={classes.columnAction} padding="none">
-                      <IconButton size="small" onClick={() => openEdit(item)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
+                      <div className={classes.columnActionContainer}>
+                        <IconButton size="small" onClick={() => openEdit(item)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        {item.purposeItem && (
+                          <IconButton size="small" onClick={() => deletePurpose(item)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>{item.sequenceNumber}</TableCell>
                     <TableCell>{devices[item.deviceId]?.name}</TableCell>
