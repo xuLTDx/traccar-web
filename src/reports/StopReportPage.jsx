@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTheme } from '@mui/material/styles';
@@ -83,9 +83,26 @@ const StopReportPage = () => {
   const [businessItem, setBusinessItem] = useState(null);
   const [businessName, setBusinessName] = useState('');
   const [businessDescription, setBusinessDescription] = useState('');
+  const [businessAddresses, setBusinessAddresses] = useState([]);
+
+  // Haversine distance in meters - good enough at these ranges without
+  // pulling in a full geo library for one comparison.
+  const distanceMeters = (lat1, lon1, lat2, lon2) => {
+    const r = 6378137;
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2
+      + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return r * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const isNearExistingBusinessAddress = useCallback((latitude, longitude) => businessAddresses.some(
+    (address) => distanceMeters(latitude, longitude, address.latitude, address.longitude) <= address.radius,
+  ), [businessAddresses]);
 
   const saveBusinessAddress = useCatch(async () => {
-    await fetchOrThrow('/api/businessaddresses', {
+    const response = await fetchOrThrow('/api/businessaddresses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -96,6 +113,8 @@ const StopReportPage = () => {
         longitude: businessItem.longitude,
       }),
     });
+    const saved = await response.json();
+    setBusinessAddresses((prev) => [...prev.filter((a) => a.id !== saved.id), saved]);
     setBusinessItem(null);
   });
 
@@ -105,10 +124,16 @@ const StopReportPage = () => {
     groupIds.forEach((groupId) => query.append('groupId', groupId));
     setLoading(true);
     try {
-      const response = await fetchOrThrow(`/api/reports/stops?${query.toString()}`, {
-        headers: { Accept: 'application/json' },
-      });
-      setItems(await response.json());
+      const [stopsResponse, businessResponse] = await Promise.all([
+        fetchOrThrow(`/api/reports/stops?${query.toString()}`, {
+          headers: { Accept: 'application/json' },
+        }),
+        fetchOrThrow('/api/businessaddresses', {
+          headers: { Accept: 'application/json' },
+        }),
+      ]);
+      setItems(await stopsResponse.json());
+      setBusinessAddresses(await businessResponse.json());
     } finally {
       setLoading(false);
     }
@@ -233,17 +258,19 @@ const StopReportPage = () => {
                           <LocationSearchingIcon fontSize="small" />
                         </IconButton>
                       )}
-                      <IconButton
-                        size="small"
-                        title={t('reportMarkBusinessAddress')}
-                        onClick={() => {
-                          setBusinessItem(item);
-                          setBusinessName('');
-                          setBusinessDescription('');
-                        }}
-                      >
-                        <BusinessIcon fontSize="small" />
-                      </IconButton>
+                      {!isNearExistingBusinessAddress(item.latitude, item.longitude) && (
+                        <IconButton
+                          size="small"
+                          title={t('reportMarkBusinessAddress')}
+                          onClick={() => {
+                            setBusinessItem(item);
+                            setBusinessName('');
+                            setBusinessDescription('');
+                          }}
+                        >
+                          <BusinessIcon fontSize="small" />
+                        </IconButton>
+                      )}
                     </TableCell>
                     <TableCell>{devices[item.deviceId].name}</TableCell>
                     {columns.map((key) => (
