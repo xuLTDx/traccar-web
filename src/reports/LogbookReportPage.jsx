@@ -93,7 +93,7 @@ const LogbookReportPage = () => {
     }
   }, [purposesFor]);
 
-  const suggestedNote = (item) => item.endGeofenceName || item.startGeofenceName || '';
+  const suggestedNote = (item) => item.endSuggestedNote || item.startSuggestedNote || '';
 
   const openEdit = (item) => {
     const existing = purposes[purposeKey(item)];

@@ -27,6 +27,7 @@ const GeofenceReportPage = lazy(() => import('./reports/GeofenceReportPage'));
 const ReplayPage = lazy(() => import('./other/ReplayPage'));
 const TripReportPage = lazy(() => import('./reports/TripReportPage'));
 const LogbookReportPage = lazy(() => import('./reports/LogbookReportPage'));
+const BusinessAddressesPage = lazy(() => import('./reports/BusinessAddressesPage'));
 const StopReportPage = lazy(() => import('./reports/StopReportPage'));
 const SummaryReportPage = lazy(() => import('./reports/SummaryReportPage'));
 const ChartReportPage = lazy(() => import('./reports/ChartReportPage'));
@@ -190,6 +191,7 @@ const Navigation = () => {
             <Route path="summary" element={<SummaryReportPage />} />
             <Route path="trips" element={<TripReportPage />} />
             <Route path="logbook" element={<LogbookReportPage />} />
+            <Route path="businessaddresses" element={<BusinessAddressesPage />} />
             <Route path="scheduled" element={<ScheduledPage />} />
             <Route path="statistics" element={<StatisticsPage />} />
             <Route path="audit" element={<AuditPage />} />

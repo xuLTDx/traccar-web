@@ -10,6 +10,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import RouteIcon from '@mui/icons-material/Route';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import BusinessIcon from '@mui/icons-material/Business';
 import EventRepeatIcon from '@mui/icons-material/EventRepeat';
 import NotesIcon from '@mui/icons-material/Notes';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
@@ -84,6 +85,12 @@ const ReportsMenu = () => {
           link={buildLink('/reports/logbook')}
           icon={<MenuBookIcon />}
           selected={location.pathname === '/reports/logbook'}
+        />
+        <MenuItem
+          title={t('reportBusinessAddresses')}
+          link="/reports/businessaddresses"
+          icon={<BusinessIcon />}
+          selected={location.pathname === '/reports/businessaddresses'}
         />
         <MenuItem
           title={t('reportSummary')}
