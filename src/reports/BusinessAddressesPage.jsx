@@ -27,7 +27,7 @@ import { useCatch, useCatchCallback } from '../reactHelper';
 import useReportStyles from './common/useReportStyles';
 import fetchOrThrow from '../common/util/fetchOrThrow';
 import MapView from '../map/core/MapView';
-import MapMarkers from '../map/MapMarkers';
+import MapEditPosition from '../map/MapEditPosition';
 import MapCamera from '../map/MapCamera';
 import MapScale from '../map/MapScale';
 import ResizeHandle from './components/ResizeHandle';
@@ -89,6 +89,19 @@ const BusinessAddressesPage = () => {
     setRemoveItem(null);
   });
 
+  // Dragging the pin re-saves the business address at the new position immediately - no separate
+  // confirm step, since the whole point is a faster alternative to typing latitude/longitude.
+  const moveSelected = useCatch(async (latitude, longitude) => {
+    const response = await fetchOrThrow('/api/businessaddresses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...selectedItem, latitude, longitude }),
+    });
+    const saved = await response.json();
+    setItems((prev) => [...prev.filter((item) => item.id !== saved.id), saved]);
+    setSelectedItem(saved);
+  });
+
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'reportBusinessAddresses']}>
       <div className={classes.container}>
@@ -96,7 +109,11 @@ const BusinessAddressesPage = () => {
           <>
             <div className={classes.containerMap}>
               <MapView>
-                <MapMarkers markers={[{ latitude: selectedItem.latitude, longitude: selectedItem.longitude }]} />
+                <MapEditPosition
+                  latitude={selectedItem.latitude}
+                  longitude={selectedItem.longitude}
+                  onChange={moveSelected}
+                />
               </MapView>
               <MapScale />
               <MapCamera latitude={selectedItem.latitude} longitude={selectedItem.longitude} />
