@@ -17,6 +17,8 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import GpsFixedIcon from '@mui/icons-material/GpsFixed';
+import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import PageLayout from '../common/components/PageLayout';
 import ReportsMenu from './components/ReportsMenu';
 import TableShimmer from '../common/components/TableShimmer';
@@ -24,6 +26,11 @@ import { useTranslation } from '../common/components/LocalizationProvider';
 import { useCatch, useCatchCallback } from '../reactHelper';
 import useReportStyles from './common/useReportStyles';
 import fetchOrThrow from '../common/util/fetchOrThrow';
+import MapView from '../map/core/MapView';
+import MapMarkers from '../map/MapMarkers';
+import MapCamera from '../map/MapCamera';
+import MapScale from '../map/MapScale';
+import ResizeHandle from './components/ResizeHandle';
 
 const BusinessAddressesPage = () => {
   const { classes } = useReportStyles();
@@ -33,6 +40,7 @@ const BusinessAddressesPage = () => {
   const [loading, setLoading] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [removeItem, setRemoveItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const refresh = useCatchCallback(async () => {
     setLoading(true);
@@ -84,6 +92,18 @@ const BusinessAddressesPage = () => {
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'reportBusinessAddresses']}>
       <div className={classes.container}>
+        {selectedItem && (
+          <>
+            <div className={classes.containerMap}>
+              <MapView>
+                <MapMarkers markers={[{ latitude: selectedItem.latitude, longitude: selectedItem.longitude }]} />
+              </MapView>
+              <MapScale />
+              <MapCamera latitude={selectedItem.latitude} longitude={selectedItem.longitude} />
+            </div>
+            <ResizeHandle />
+          </>
+        )}
         <div className={classes.containerMain}>
           <Toolbar disableGutters className={classes.header}>
             <IconButton onClick={openAdd} title={t('sharedAdd')}>
@@ -108,6 +128,15 @@ const BusinessAddressesPage = () => {
                   <TableRow key={item.id}>
                     <TableCell className={classes.columnAction} padding="none">
                       <div className={classes.columnActionContainer}>
+                        {selectedItem === item ? (
+                          <IconButton size="small" onClick={() => setSelectedItem(null)}>
+                            <GpsFixedIcon fontSize="small" />
+                          </IconButton>
+                        ) : (
+                          <IconButton size="small" onClick={() => setSelectedItem(item)}>
+                            <LocationSearchingIcon fontSize="small" />
+                          </IconButton>
+                        )}
                         <IconButton size="small" onClick={() => openEdit(item)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
