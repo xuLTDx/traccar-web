@@ -35,6 +35,20 @@ export default (t) =>
         name: t('attributeReportIgnoreOdometer'),
         type: 'boolean',
       },
+      odometerAnchorReal: {
+        name: t('attributeOdometerAnchorReal'),
+        type: 'number',
+        dataType: 'distance',
+      },
+      odometerAnchorDistance: {
+        name: t('attributeOdometerAnchorDistance'),
+        type: 'number',
+        dataType: 'distance',
+      },
+      odometerFactor: {
+        name: t('attributeOdometerFactor'),
+        type: 'number',
+      },
       deviceInactivityStart: {
         name: t('attributeDeviceInactivityStart'),
         type: 'number',
