@@ -49,6 +49,10 @@ export default (t) =>
         name: t('attributeOdometerFactor'),
         type: 'number',
       },
+      odometerAnchorTime: {
+        name: t('attributeOdometerAnchorTime'),
+        type: 'string',
+      },
       deviceInactivityStart: {
         name: t('attributeDeviceInactivityStart'),
         type: 'number',

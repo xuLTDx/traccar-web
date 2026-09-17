@@ -19,6 +19,7 @@ import {
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import LocationSearchingIcon from '@mui/icons-material/LocationSearching';
 import BusinessIcon from '@mui/icons-material/Business';
+import SpeedIcon from '@mui/icons-material/Speed';
 import {
   formatAddress,
   formatDistance,
@@ -26,6 +27,7 @@ import {
   formatTime,
   formatNumericHours,
 } from '../common/util/formatter';
+import { distanceToMeters } from '../common/util/converter';
 import ReportFilter from './components/ReportFilter';
 import { useAttributePreference, usePreference } from '../common/util/preferences';
 import { useTranslation } from '../common/components/LocalizationProvider';
@@ -84,6 +86,8 @@ const StopReportPage = () => {
   const [businessName, setBusinessName] = useState('');
   const [businessDescription, setBusinessDescription] = useState('');
   const [businessAddresses, setBusinessAddresses] = useState([]);
+  const [calibrationItem, setCalibrationItem] = useState(null);
+  const [calibrationValue, setCalibrationValue] = useState('');
 
   // Haversine distance in meters - good enough at these ranges without
   // pulling in a full geo library for one comparison.
@@ -116,6 +120,22 @@ const StopReportPage = () => {
     const saved = await response.json();
     setBusinessAddresses((prev) => [...prev.filter((a) => a.id !== saved.id), saved]);
     setBusinessItem(null);
+  });
+
+  // Real odometer reading (e.g. a dashboard photo taken while stopped here) fixes the GPS-vs-real
+  // km divergence from this position onward - see PositionUtil.calibratedOdometer. Closes out the
+  // previous calibration segment permanently and moves the anchor to this position.
+  const saveCalibration = useCatch(async () => {
+    await fetchOrThrow('/api/odometer/calibrate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        positionId: calibrationItem.positionId,
+        realOdometer: distanceToMeters(Number(calibrationValue), distanceUnit),
+      }),
+    });
+    setCalibrationItem(null);
+    setCalibrationValue('');
   });
 
   const onShow = useCatchCallback(async ({ deviceIds, groupIds, from, to }) => {
@@ -272,6 +292,16 @@ const StopReportPage = () => {
                             <BusinessIcon fontSize="small" />
                           </IconButton>
                         )}
+                        <IconButton
+                          size="small"
+                          title={t('reportCalibrateOdometer')}
+                          onClick={() => {
+                            setCalibrationItem(item);
+                            setCalibrationValue('');
+                          }}
+                        >
+                          <SpeedIcon fontSize="small" />
+                        </IconButton>
                       </div>
                     </TableCell>
                     <TableCell>{devices[item.deviceId].name}</TableCell>
@@ -311,6 +341,26 @@ const StopReportPage = () => {
         <DialogActions>
           <Button onClick={() => setBusinessItem(null)}>{t('sharedCancel')}</Button>
           <Button onClick={saveBusinessAddress} variant="contained" disabled={!businessName}>
+            {t('sharedSave')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={!!calibrationItem} onClose={() => setCalibrationItem(null)} fullWidth maxWidth="xs">
+        <DialogTitle>{t('reportCalibrateOdometer')}</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            margin="normal"
+            type="number"
+            label={t('reportRealOdometer')}
+            value={calibrationValue}
+            onChange={(e) => setCalibrationValue(e.target.value)}
+            autoFocus
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCalibrationItem(null)}>{t('sharedCancel')}</Button>
+          <Button onClick={saveCalibration} variant="contained" disabled={!calibrationValue}>
             {t('sharedSave')}
           </Button>
         </DialogActions>
