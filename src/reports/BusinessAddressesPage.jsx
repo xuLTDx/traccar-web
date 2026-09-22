@@ -61,7 +61,7 @@ const BusinessAddressesPage = () => {
   const openEdit = (item) => setEditItem({ ...item });
 
   const openAdd = () => setEditItem({
-    name: '', description: '', address: '', latitude: '', longitude: '', radius: 200,
+    name: '', description: '', address: '', latitude: '', longitude: '', radius: 200, ssid: '',
   });
 
   const save = useCatch(async () => {
@@ -137,6 +137,7 @@ const BusinessAddressesPage = () => {
                 <TableCell>{t('positionLatitude')}</TableCell>
                 <TableCell>{t('positionLongitude')}</TableCell>
                 <TableCell>{t('commandRadius')}</TableCell>
+                <TableCell>{t('reportBusinessAddressSsid')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -168,10 +169,11 @@ const BusinessAddressesPage = () => {
                     <TableCell>{item.latitude}</TableCell>
                     <TableCell>{item.longitude}</TableCell>
                     <TableCell>{item.radius}</TableCell>
+                    <TableCell>{item.ssid}</TableCell>
                   </TableRow>
                 ))
               ) : (
-                <TableShimmer columns={7} startAction />
+                <TableShimmer columns={8} startAction />
               )}
             </TableBody>
           </Table>
@@ -227,6 +229,14 @@ const BusinessAddressesPage = () => {
             type="number"
             value={editItem?.radius ?? ''}
             onChange={(e) => setEditItem({ ...editItem, radius: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            margin="normal"
+            label={t('reportBusinessAddressSsid')}
+            helperText={t('reportBusinessAddressSsidHelp')}
+            value={editItem?.ssid || ''}
+            onChange={(e) => setEditItem({ ...editItem, ssid: e.target.value })}
           />
         </DialogContent>
         <DialogActions>

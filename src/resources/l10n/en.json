@@ -604,6 +604,8 @@
     "reportCalibrateOdometer": "Calibrate odometer",
     "reportRealOdometer": "Real odometer reading",
     "reportBusinessAddresses": "Business Addresses",
+    "reportBusinessAddressSsid": "WiFi network (SSID)",
+    "reportBusinessAddressSsidHelp": "Optional. Network name only, never a password - the device must already have this network's password saved on it.",
     "reportStops": "Stops",
     "reportSummary": "Summary",
     "reportDaily": "Daily Summary",
