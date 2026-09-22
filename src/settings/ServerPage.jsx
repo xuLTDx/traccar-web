@@ -195,6 +195,22 @@ const ServerPage = () => {
                   titleGetter={(it) => it}
                   label={t('sharedTimezone')}
                 />
+                <FormGroup>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={item.attributes.twelveHourFormat || false}
+                        onChange={(event) =>
+                          setItem({
+                            ...item,
+                            attributes: { ...item.attributes, twelveHourFormat: event.target.checked },
+                          })
+                        }
+                      />
+                    }
+                    label={t('settingsTwelveHourFormat')}
+                  />
+                </FormGroup>
                 <TextField
                   value={item.poiLayer || ''}
                   onChange={(event) => setItem({ ...item, poiLayer: event.target.value })}

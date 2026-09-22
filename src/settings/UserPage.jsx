@@ -304,6 +304,22 @@ const UserPage = () => {
                 titleGetter={(it) => it}
                 label={t('sharedTimezone')}
               />
+              <FormGroup>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={(item.attributes && item.attributes.twelveHourFormat) || false}
+                      onChange={(event) =>
+                        setItem({
+                          ...item,
+                          attributes: { ...item.attributes, twelveHourFormat: event.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label={t('settingsTwelveHourFormat')}
+                />
+              </FormGroup>
               <TextField
                 value={item.poiLayer || ''}
                 onChange={(e) => setItem({ ...item, poiLayer: e.target.value })}

@@ -14,6 +14,7 @@ import {
   volumeUnitString,
 } from './converter';
 import { prefixString } from './stringUtils';
+import store from '../../store';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -32,21 +33,49 @@ export const formatVoltage = (value, t) => `${value.toFixed(2)} ${t('sharedVoltA
 export const formatConsumption = (value, t) =>
   `${value.toFixed(2)} ${t('sharedLiterPerHourAbbreviation')}`;
 
+// 2026-09-22: dates/times used to be formatted with locale left undefined,
+// which meant "whatever the viewing browser reports" - on a Chrome profile
+// with US regional settings this produced MM/DD/YYYY + AM/PM even though the
+// fleet, server, and every user of this instance are in Slovakia. Reads the
+// same "timezone" attribute already exposed in Settings -> Server/Account
+// (previously unused by the web UI's own display, only by device
+// commands/reports) plus a new "twelveHourFormat" attribute, with the same
+// user-overrides-server precedence as useAttributePreference() - just
+// resolved directly from the store here since formatTime() is a plain
+// function called from ~16 places, not a component (no hook access).
+// Defaults (nothing set in Settings): Europe/Bratislava, 24-hour format.
+const attributePreference = (key, defaultValue) => {
+  const { user, server } = store.getState().session;
+  if (server.forceSettings) {
+    if (server.attributes && server.attributes[key] != null) return server.attributes[key];
+    if (user && user.attributes && user.attributes[key] != null) return user.attributes[key];
+    return defaultValue;
+  }
+  if (user && user.attributes && user.attributes[key] != null) return user.attributes[key];
+  if (server.attributes && server.attributes[key] != null) return server.attributes[key];
+  return defaultValue;
+};
+
 export const formatTime = (value, format) => {
   if (value) {
     const d = dayjs(value).toDate();
-    const dateConfig = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    const minuteConfig = { hour: '2-digit', minute: '2-digit' };
+    const timeZone = attributePreference('timezone', 'Europe/Bratislava');
+    const hour12 = attributePreference('twelveHourFormat', false);
+    const locale = hour12 ? undefined : 'sk-SK';
+    const dateConfig = { year: 'numeric', month: '2-digit', day: '2-digit', timeZone };
+    const minuteConfig = {
+      hour: '2-digit', minute: '2-digit', hour12, timeZone,
+    };
     const secondConfig = { ...minuteConfig, second: '2-digit' };
     switch (format) {
       case 'date':
-        return d.toLocaleDateString(undefined, dateConfig);
+        return d.toLocaleDateString(locale, dateConfig);
       case 'time':
-        return d.toLocaleTimeString(undefined, secondConfig);
+        return d.toLocaleTimeString(locale, secondConfig);
       case 'minutes':
-        return d.toLocaleString(undefined, { ...dateConfig, ...minuteConfig });
+        return d.toLocaleString(locale, { ...dateConfig, ...minuteConfig });
       default:
-        return d.toLocaleString(undefined, { ...dateConfig, ...secondConfig });
+        return d.toLocaleString(locale, { ...dateConfig, ...secondConfig });
     }
   }
   return '';
