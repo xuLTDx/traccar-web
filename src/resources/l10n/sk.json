@@ -630,6 +630,7 @@
     "reportStartAddress": "Počiatočná adresa",
     "reportEndTime": "Čas ukončenia",
     "reportEndAddress": "Koncová adresa",
+    "reportAddressAutomatic": "Automaticky (podľa polohy)",
     "reportSpentFuel": "Spotrebované palivo",
     "reportStartOdometer": "Štart počítadla kilometrov",
     "reportEndOdometer": "Koniec počítadla kilometrov",

@@ -639,6 +639,7 @@
     "reportStartAddress": "Start Address",
     "reportEndTime": "End Time",
     "reportEndAddress": "End Address",
+    "reportAddressAutomatic": "Automatic (from the position)",
     "reportSpentFuel": "Spent Fuel",
     "reportStartOdometer": "Odometer Start",
     "reportEndOdometer": "Odometer End",

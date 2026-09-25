@@ -1,4 +1,6 @@
-import { useState, useMemo, useCallback } from 'react';
+import {
+  useState, useMemo, useCallback, useEffect,
+} from 'react';
 import { useSelector } from 'react-redux';
 import {
   Table,
@@ -60,6 +62,26 @@ const LogbookReportPage = () => {
   const [editItem, setEditItem] = useState(null);
   const [editPurpose, setEditPurpose] = useState('business');
   const [editNote, setEditNote] = useState('');
+  // Manual start/end address override (a business address), '' = derived
+  // from the trip's start/end position as usual.
+  const [editStartAddress, setEditStartAddress] = useState('');
+  const [editEndAddress, setEditEndAddress] = useState('');
+  const [businessAddresses, setBusinessAddresses] = useState([]);
+
+  const loadBusinessAddresses = useCatchCallback(async () => {
+    const response = await fetchOrThrow('/api/businessaddresses', {
+      headers: { Accept: 'application/json' },
+    });
+    setBusinessAddresses(await response.json());
+  }, []);
+
+  useEffect(() => {
+    loadBusinessAddresses();
+  }, [loadBusinessAddresses]);
+
+  // What the logbook shows/exports for a business address: its real street
+  // address, the same text the automatic proximity match uses.
+  const businessAddressText = (address) => address.address || address.name;
 
   const purposesFor = useCallback((deviceIds) => Promise.all(
     deviceIds.map(async (deviceId) => {
@@ -101,7 +123,14 @@ const LogbookReportPage = () => {
     setEditItem(item);
     setEditPurpose(existing?.purpose || 'business');
     setEditNote(existing?.note ?? suggestedNote(item));
+    setEditStartAddress(existing?.startAddress || '');
+    setEditEndAddress(existing?.endAddress || '');
   };
+
+  const startAddressText = (row) => row.purposeItem?.startAddress || row.startBusinessAddress
+    || row.startGeofenceName || row.startAddress || `${row.startLat}, ${row.startLon}`;
+  const endAddressText = (row) => row.purposeItem?.endAddress || row.endBusinessAddress
+    || row.endGeofenceName || row.endAddress || `${row.endLat}, ${row.endLon}`;
 
   const deletePurpose = useCatch(async (item) => {
     const existing = purposes[purposeKey(item)];
@@ -123,6 +152,8 @@ const LogbookReportPage = () => {
       endPositionId: editItem.endPositionId,
       purpose: editPurpose,
       note: editNote,
+      startAddress: editStartAddress || null,
+      endAddress: editEndAddress || null,
     };
     const response = await fetchOrThrow('/api/trippurposes', {
       method: 'POST',
@@ -181,10 +212,8 @@ const LogbookReportPage = () => {
         formatTime(row.endTime, 'minutes'),
         purposeLabel(purpose?.purpose),
         purpose?.note || '',
-        row.startBusinessAddress || row.startGeofenceName || row.startAddress
-          || `${row.startLat}, ${row.startLon}`,
-        row.endBusinessAddress || row.endGeofenceName || row.endAddress
-          || `${row.endLat}, ${row.endLon}`,
+        startAddressText(row),
+        endAddressText(row),
         formatDistance(row.distance, distanceUnit, t),
         formatDistance(row.startOdometer, distanceUnit, t),
         formatDistance(row.endOdometer, distanceUnit, t),
@@ -264,7 +293,7 @@ const LogbookReportPage = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {item.startBusinessAddress || item.startGeofenceName || (
+                      {item.purposeItem?.startAddress || item.startBusinessAddress || item.startGeofenceName || (
                         <AddressValue
                           latitude={item.startLat}
                           longitude={item.startLon}
@@ -273,7 +302,7 @@ const LogbookReportPage = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      {item.endBusinessAddress || item.endGeofenceName || (
+                      {item.purposeItem?.endAddress || item.endBusinessAddress || item.endGeofenceName || (
                         <AddressValue
                           latitude={item.endLat}
                           longitude={item.endLon}
@@ -308,6 +337,26 @@ const LogbookReportPage = () => {
               <MenuItem value="commute">{t('reportTripPurposeCommute')}</MenuItem>
             </Select>
           </FormControl>
+          {[
+            [t('reportStartAddress'), editStartAddress, setEditStartAddress],
+            [t('reportEndAddress'), editEndAddress, setEditEndAddress],
+          ].map(([label, value, setValue]) => (
+            <FormControl key={label} fullWidth margin="normal">
+              <InputLabel>{label}</InputLabel>
+              <Select label={label} value={value} onChange={(e) => setValue(e.target.value)}>
+                <MenuItem value="">{t('reportAddressAutomatic')}</MenuItem>
+                {businessAddresses.map((address) => (
+                  <MenuItem key={address.id} value={businessAddressText(address)}>
+                    {address.name}
+                    {address.address ? ` – ${address.address}` : ''}
+                  </MenuItem>
+                ))}
+                {value && !businessAddresses.some((address) => businessAddressText(address) === value) && (
+                  <MenuItem value={value}>{value}</MenuItem>
+                )}
+              </Select>
+            </FormControl>
+          ))}
           <TextField
             fullWidth
             margin="normal"
